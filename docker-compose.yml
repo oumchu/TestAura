@@ -1,0 +1,27 @@
+services:
+  app:
+    build:
+      context: ./mock-server
+      dockerfile: ../docker/Dockerfile.app
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/products').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+  test:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.test
+    environment:
+      - BASE_URL=http://app:3000
+    depends_on:
+      app:
+        condition: service_healthy
+    volumes:
+      - ./test-results:/app/test-results
+      - ./playwright-report:/app/playwright-report

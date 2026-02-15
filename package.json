@@ -1,0 +1,16 @@
+{
+  "name": "ecommerce-qa-automation",
+  "version": "1.0.0",
+  "description": "QA automation tests for e-commerce application",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:api": "npx playwright test tests/api/",
+    "test:e2e": "npx playwright test tests/e2e/",
+    "mock-server": "cd mock-server && npx ts-node server.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0"
+  }
+}
