@@ -209,9 +209,9 @@ jobs:
 
 1. **Visual/UI layout** — things like font size, color, alignment look different on every browser and OS. A test can pass on Chrome but fail on Safari for no real reason. Better to check visually by human eyes.
 
-2. **Third-party payment flows** — payment providers (Stripe, PayPal) control their own screens. They can change their UI anytime and break our tests even though our app is fine. Automate up to the payment step, not inside it.
+2. **Optional features** — features that are nice to have but not core to the business (e.g. wishlist, theme settings, profile avatar). Automating these is low priority because even if they break, users can still shop and pay normally.
 
-3. **Email/OTP verification** — waiting for a real email or SMS in a test is slow and unreliable. Instead, just verify the system sends the request correctly at the API level.
+3. **Low frequency scenarios** — situations that rarely happen in real life (e.g. user changes currency three times in one session, or adds 100 items to cart). The effort to automate these is not worth it compared to focusing on flows that users do every day.
 
 ## Section D2 — Go-Live Criteria
 
