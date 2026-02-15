@@ -138,6 +138,29 @@ Running 17 tests using 1 worker
 
 ---
 
+## Section A1 — Automation Strategy
+
+I chose to start with API testing first because I need to make sure the backend is returning the correct data according to the API spec before anything else. API tests are faster to run since there's no browser involved, and when something fails, I know right away it's a backend issue — not a UI glitch or a timing problem.
+
+Once the APIs are verified, I move on to E2E tests. The idea here is to compare what the API returns with what actually shows up on screen. For example, if the API says a product costs 299 baht, the E2E test checks that the user sees 299 baht on the page. This way I'm not duplicating effort — APIs handle the data correctness, E2E handles the user experience.
+
+This follows the test pyramid approach: API tests form the solid base (fast, stable, many cases), and E2E tests sit on top (fewer tests, focused on real user flows).
+
+## Section A2 — Critical Test Scenarios
+
+These are the scenarios I consider critical because they represent the core purchasing flow that directly affects revenue and user trust:
+
+1. **Register** — user must be able to create a new account, otherwise they can't use the platform at all
+2. **Login** — authentication has to work; if users can't log in, everything else is blocked
+3. **Search products** — users need to find what they're looking for quickly
+4. **Product details** — the product page must show correct information (name, price, description) so users can make a buying decision
+5. **Add product to cart** — this is the first step toward a purchase, it has to work reliably
+6. **Cart details** — users need to see what's in their cart with the correct items and totals before they commit
+7. **Checkout** — this is where the money flows; any bug here means lost revenue
+8. **Order status** — after paying, users need to know their order went through and track it
+
+I also included a couple of negative cases like logging in with wrong credentials, because those affect security and user trust.
+
 ## Section B1 — Test Framework Design
 
 ### Folder Structure
@@ -188,11 +211,21 @@ jobs:
 
 ## Section D1 — What NOT to Automate
 
-### 1. Visual/cosmetic appearance
-**Why not:** Pixel-level rendering varies across browsers and OS. Automated visual regression tools (Percy, Chromatic) are better suited. For this scope, manual review during PR is sufficient.
+### 1. Visual/UI layout and cosmetic appearance
+I wouldn't automate visual checks like font sizes, colors, or element alignment. The reason is that pixel-level rendering behaves differently across browsers and operating systems — a test might pass on Chrome but fail on Safari just because of how fonts render. For visual stuff, it's more practical to do manual review during PRs or use dedicated visual regression tools like Percy if the team decides it's worth the investment.
 
 ### 2. Third-party payment gateway flows
-**Why not:** Payment providers (Stripe, PayPal) have sandboxes but their UIs change without notice. Automate up to the payment boundary. Use provider webhooks and monitoring for post-payment verification.
+Payment providers like Stripe or PayPal have their own UI that we don't control. They can change their interface anytime without telling us, which would break our tests even though nothing is wrong on our side. I'd automate everything up to the payment boundary (selecting payment method, filling in details) but let the actual payment processing be verified through webhooks and provider dashboards.
 
-### 3. Email verification / OTP flows
-**Why not:** Requires email service integration or phone APIs. These introduce external dependencies that cause flakiness. Mock at the API level instead; verify the email-sending service is called correctly via unit/integration tests.
+### 3. Email verification and OTP flows
+Automating email or SMS verification requires connecting to external email services or phone APIs, which makes tests flaky and slow. Instead, I'd mock the email/OTP at the API level — verify that the system correctly triggers the email service, but don't actually wait for an email to arrive in a real inbox.
+
+## Section D2 — Go-Live Criteria
+
+These are the key things I'd check before deciding the application is ready to go live:
+
+1. **Testing timeline and completion** — all planned test cases have been executed within the scheduled timeline. If we still have critical test scenarios that haven't been run, we're not ready to release.
+
+2. **Defect status** — I'd look at how many defects were found and their severity. There should be no critical or high-severity bugs remaining open. If there are still major issues, we need to fix them before release. A reasonable number of low-priority bugs might be acceptable depending on the team's agreement.
+
+3. **Regression / backward compatibility** — the new version should not break existing functionality. I'd run regression tests to confirm that features that worked in the previous version still work the same way after the update. If old features break because of new changes, that's a blocker.
